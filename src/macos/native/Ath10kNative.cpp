@@ -272,8 +272,20 @@ IOReturn Ath10kPCIDevice::getHARDWARE_VERSION(IO80211SkywalkInterface *,apple802
 }
 bool Ath10kPCIDevice::nativeSAEEnabled() const {
     auto option=OSDynamicCast(OSBoolean,getProperty("Ath10kNativeSAEExperimental"));
-    return option && option->isTrue() && AthSecurity::p256DiagnosticKernel(
-        version_major,version_minor,version_revision,"24G90",version);
+    if(!option || !option->isTrue()) return false;
+    const char *buildStr = "24H241";
+    char liveBuild[32] = {0};
+    if(auto root=IORegistryEntry::getRegistryRoot()){
+        if(auto prop=root->copyProperty("OS Build Version")){
+            if(auto str=OSDynamicCast(OSString,prop)){
+                strlcpy(liveBuild,str->getCStringNoCopy(),sizeof(liveBuild));
+                buildStr=liveBuild;
+            }
+            prop->release();
+        }
+    }
+    return AthSecurity::p256DiagnosticKernel(
+        version_major,version_minor,version_revision,buildStr,version);
 }
 bool Ath10kPCIDevice::nativePMFStartupQueryEnabled() const {
     auto option=OSDynamicCast(OSBoolean,getProperty("Ath10kNativePMFStartupQuery"));

@@ -95,7 +95,9 @@ int main(){
   pause.resume();runner.join();pauseCurve=nullptr;assert(!worker->takeCompleted() && objects==1);}
  // Profile admission is intentionally limited to the known device/kernel.
  const char *kernel="Darwin Kernel Version 24.6.0: test; root:xnu-11417.140.69~1/RELEASE_X86_64";
+ const char *kernel_host="Darwin Kernel Version 24.6.0: Sun Oct 11 23:36:58 PDT 2026; root:xnu-11417.140.69.713.47~2/RELEASE_X86_64";
  assert(AthSecurity::p256DiagnosticKernel(24,6,0,"24G90",kernel));
+ assert(AthSecurity::p256DiagnosticKernel(24,6,0,"24H241",kernel_host));
  assert(AthSecurity::p256DiagnosticKernel(24,6,0,"24G90",(std::string(kernel)+"\n").c_str()));
  assert(!AthSecurity::p256DiagnosticKernel(25,6,0,"24G90",kernel));
  assert(!AthSecurity::p256DiagnosticKernel(24,6,0,"24G91",kernel));

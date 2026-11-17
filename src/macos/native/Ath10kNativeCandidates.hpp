@@ -69,7 +69,9 @@ inline bool chooseRoamCandidate(const Ath10k::ConnectionState &live,
         if(prepareRoamCandidate(live,request,ap,prepared))continue;
         bool better=!found;
         if(found){
-            const int32_t signal=static_cast<int32_t>(ap.snr),best=static_cast<int32_t>(out.ap.snr);
+            const int32_t apBonus = ((ap.advertisedChannel ? ap.advertisedChannel : ap.rxChannel) > 14 && ap.snr >= 15) ? 12 : 0;
+            const int32_t outBonus = ((out.ap.advertisedChannel ? out.ap.advertisedChannel : out.ap.rxChannel) > 14 && out.ap.snr >= 15) ? 12 : 0;
+            const int32_t signal=static_cast<int32_t>(ap.snr) + apBonus,best=static_cast<int32_t>(out.ap.snr) + outBonus;
             better=signal>best || (signal==best && cache.observed[i]>bestObserved);
             if(signal==best && cache.observed[i]==bestObserved){
                 for(UInt32 j=0;j<6;++j){
