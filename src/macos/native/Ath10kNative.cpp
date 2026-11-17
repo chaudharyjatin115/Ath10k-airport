@@ -546,7 +546,12 @@ IOWorkLoop *Ath10kNativeInterface::getWorkLoop() const {
 }
 IOReturn Ath10kNativeInterface::perform(AthNativeOp op,void *data){return controller?controller->nativeRequest(op,data):kIOReturnNotAttached;}
 IOReturn Ath10kNativeInterface::setMacAddress(ether_addr &address) {
-    return controller?controller->nativeRequest(AthNativeOp::MACSet,&address):kIOReturnNotAttached;
+    if(!controller)return kIOReturnNotAttached;
+    auto allowRandom=OSDynamicCast(OSBoolean,controller->getProperty("Ath10kNativeAllowMACRandomization"));
+    if((!allowRandom || !allowRandom->isTrue()) && bcmp(controller->_wmiInit.mac,&address,6)!=0){
+        return kIOReturnUnsupported;
+    }
+    return controller->nativeRequest(AthNativeOp::MACSet,&address);
 }
 IONetworkInterface *Ath10kPCIDevice::createInterface() {
     auto interface=new Ath10kBSDInterface;
@@ -1412,6 +1417,11 @@ IOReturn Ath10kPCIDevice::nativeRequestGated(AthNativeOp op,void *data) {
         const bool same=!bcmp(_nativeMACCurrent,address,6);
         setProperty("Ath10kNativeMACChangeRequested",!same);
         if(same)return kIOReturnSuccess;
+        auto allowRandom=OSDynamicCast(OSBoolean,getProperty("Ath10kNativeAllowMACRandomization"));
+        if((!allowRandom || !allowRandom->isTrue()) && bcmp(_wmiInit.mac,address,6)!=0){
+            setProperty("Ath10kNativeMACStatus","randomization-disabled");
+            return kIOReturnUnsupported;
+        }
         if(!_nativeMACValid || !_nativeGate || getWorkLoop()->onThread())return kIOReturnNotReady;
         if(!_networkInterface || !_networkInterface->getIfnet() || !_wmiScanChannels.completed || !_wmiScan.completed ||
            _nativeScanPending || _nativeJoinPending || _nativeAbortRequested || _nativeWasUp || _nativeLinkUpSent || s.stage!=Ath10k::LinkStage::Disabled ||
