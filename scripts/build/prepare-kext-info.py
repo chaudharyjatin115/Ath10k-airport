@@ -22,28 +22,44 @@ def prepare(native, destination, diagnostic_stage=0, p256_diagnostic=False, nati
             'com.apple.iokit.IOSkywalkFamily': '1.0',
             'com.apple.driver.corecapture': '1.0.0', 'com.apple.kec.corecrypto': '1.0',
         })
-        personality = info['IOKitPersonalities']['QCA9377']
-        personality.update({
+        pers_9377 = dict(info['IOKitPersonalities']['QCA9377'])
+        pers_9377.update({
             'IOMatchCategory': 'WiFiDriver', 'IONetworkRootType': 'airport',
             'Ath10kNativeExperimental': True, 'IOPCISecondaryMatch': '0x2b511a3b',
             'Ath10kDiagnosticStage': diagnostic_stage, 'Ath10kProbeOnly': False, 'Ath10kStationDFS': True,
         })
-        personality.pop('Ath10kNativeSAEExperimental', None)
-        personality.pop('Ath10kNativePMFStartupQuery', None)
+        pers_9377.pop('Ath10kNativeSAEExperimental', None)
+        pers_9377.pop('Ath10kNativePMFStartupQuery', None)
         if native_sae_experimental:
-            personality['Ath10kNativeSAEExperimental'] = True
+            pers_9377['Ath10kNativeSAEExperimental'] = True
         if native_pmf_probe:
-            personality['Ath10kNativePMFStartupQuery'] = True
+            pers_9377['Ath10kNativePMFStartupQuery'] = True
+
+        pers_6174 = dict(info['IOKitPersonalities']['QCA6174'])
+        pers_6174.update({
+            'IOMatchCategory': 'WiFiDriver', 'IONetworkRootType': 'airport',
+            'Ath10kNativeExperimental': True, 'IOPCISecondaryMatch': '0x03101028',
+            'Ath10kDiagnosticStage': diagnostic_stage, 'Ath10kProbeOnly': False, 'Ath10kStationDFS': True,
+        })
+        pers_6174.pop('Ath10kNativeSAEExperimental', None)
+        pers_6174.pop('Ath10kNativePMFStartupQuery', None)
+        if native_sae_experimental:
+            pers_6174['Ath10kNativeSAEExperimental'] = True
+        if native_pmf_probe:
+            pers_6174['Ath10kNativePMFStartupQuery'] = True
+
         if p256_diagnostic:
             # This isolated service cannot provide a network-root device.
             info.pop('OSBundleRequired', None)
             info['OSBundleLibraries'] = {key: info['OSBundleLibraries'][key] for key in (
                 'com.apple.iokit.IOPCIFamily', 'com.apple.kpi.iokit', 'com.apple.kpi.libkern',
                 'com.apple.kpi.mach', 'com.apple.kec.corecrypto')}
-            personality.update({'IOClass': 'Ath10kP256DiagnosticService', 'Ath10kP256SelfTest': True})
-            personality.pop('IONetworkRootType', None)
-            personality.pop('Ath10kNativeExperimental', None)
-        info['IOKitPersonalities'] = {'Lunnen-QCA9377': personality}
+            pers_9377.update({'IOClass': 'Ath10kP256DiagnosticService', 'Ath10kP256SelfTest': True})
+            pers_9377.pop('IONetworkRootType', None)
+            pers_9377.pop('Ath10kNativeExperimental', None)
+            info['IOKitPersonalities'] = {'Lunnen-QCA9377': pers_9377}
+        else:
+            info['IOKitPersonalities'] = {'Lunnen-QCA9377': pers_9377, 'Dell-QCA6174': pers_6174}
     destination = Path(destination)
     destination.parent.mkdir(parents=True, exist_ok=True)
     destination.write_bytes(plistlib.dumps(info, sort_keys=False))

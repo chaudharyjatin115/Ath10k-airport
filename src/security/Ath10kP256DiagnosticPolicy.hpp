@@ -3,7 +3,8 @@
 #include <string.h>
 namespace AthSecurity {
 inline bool p256DiagnosticDevice(uint16_t vendor,uint16_t device,uint16_t subvendor,uint16_t subsystem){
- return vendor==0x168c && device==0x42 && subvendor==0x1a3b && subsystem==0x2b51;
+ return vendor==0x168c && ((device==0x42 && subvendor==0x1a3b && subsystem==0x2b51) ||
+                           (device==0x3e && subvendor==0x1028 && subsystem==0x0310));
 }
 // Deliberately one known OS build for the first private-ABI diagnostic. This
 // is a test admission guard, not proof that CoreCrypto's runtime ABI is valid.

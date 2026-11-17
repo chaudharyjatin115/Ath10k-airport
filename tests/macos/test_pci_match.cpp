@@ -60,6 +60,10 @@ int main(){
  put(device,0x3e);assert(!driver.probe(&pci,nullptr));put(device,0x42);
  assert(ath10kNativePCIIdentity(0x168c,0x42,0x1a3b,0x2b51));
  assert(!ath10kNativePCIIdentity(0x168c,0x3e,0x1a3b,0x2b51));
+ put(device,0x3e);put(subvendor,0x1028);put(subsystem,0x0310);
+ assert(driver.probe(&pci,nullptr)==&driver);
+ assert(ath10kNativePCIIdentity(0x168c,0x3e,0x1028,0x0310));
+ put(subvendor,0x1a3b);put(subsystem,0x2b51);put(device,0x42);
  IOService nonPCI;assert(!driver.probe(&nonPCI,nullptr));
  OSBoolean wrongType;pci.properties["vendor-id"]=&wrongType;
  assert(!driver.probe(&pci,nullptr) && wrongType.references==1);

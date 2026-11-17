@@ -38,6 +38,11 @@
 #include <IOKit/IOUserClient.h>
 #include "../../core/Ath10kControl.hpp"
 
+class Ath10kPCIDevice;
+#ifdef ATH10K_NATIVE
+bool ath10kNativePCIIdentity(UInt16 vendor, UInt16 device, UInt16 subsystemVendor, UInt16 subsystem);
+#endif
+
 class Ath10kPCIDevice : public ATH10K_CONTROLLER_BASE
 {
     OSDeclareDefaultStructors(Ath10kPCIDevice)

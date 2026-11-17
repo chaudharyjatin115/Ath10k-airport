@@ -266,6 +266,8 @@ IOReturn Ath10kPCIDevice::getDRIVER_VERSION(IO80211SkywalkInterface *,apple80211
     return nativeVersion(data,"Ath10kMac Sequoia WCL experimental");
 }
 IOReturn Ath10kPCIDevice::getHARDWARE_VERSION(IO80211SkywalkInterface *,apple80211_version_data *data) {
+    if (_deviceId == Ath10k::kQCA6174Device)
+        return nativeVersion(data,"Qualcomm Atheros QCA6174 Dell 1028:0310");
     return nativeVersion(data,"Qualcomm Atheros QCA9377 Lunnen 1a3b:2b51");
 }
 bool Ath10kPCIDevice::nativeSAEEnabled() const {
@@ -552,7 +554,7 @@ bool Ath10kPCIDevice::prepareNativeInterface() {
     if(!_nativeServiceCall)return false;
     bcopy(_wmiInit.mac,_nativeMACCurrent,6);_nativeMACValid=true;
     // Strict profile/OS guard; unrelated adapters must not enter the WCL path.
-    if(_vendorId!=0x168c || _deviceId!=0x42 || _subsystemVendorId!=0x1a3b || _subsystemId!=0x2b51)return false;
+    if(!ath10kNativePCIIdentity(_vendorId,_deviceId,_subsystemVendorId,_subsystemId))return false;
     _nativeGate=IOCommandGate::commandGate(this);
     if(!_nativeGate || getWorkLoop()->addEventSource(_nativeGate)!=kIOReturnSuccess)return false;
     // BSD preparation is a WCL operation and requires the IO80211 queue gate.
@@ -1178,7 +1180,6 @@ IOReturn Ath10kPCIDevice::nativePHYCapabilities(AthNativeOp op,void *data) {
     if(!data)return kIOReturnBadArgument;
     if(!_wmi.serviceReady)return kIOReturnNotReady;
     if(!ATH10K_HT_VHT || !(_wmi.htCapability&1))return kIOReturnUnsupported;
-    // This native personality is pinned to the verified single-chain QCA9377.
     // Capabilities are local and available before joining any AP.
     constexpr UInt8 streams=1;
     UInt8 reply[32]{};Ath10k::htcWriteLE32(reply,1);UInt32 length=0;

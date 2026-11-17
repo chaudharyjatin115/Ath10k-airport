@@ -86,9 +86,12 @@ static bool ath10kRegistryPCIID(IOService *provider,const char *key,UInt16 &valu
 }
 
 #ifdef ATH10K_NATIVE
-static bool ath10kNativePCIIdentity(UInt16 vendor,UInt16 device,UInt16 subsystemVendor,UInt16 subsystem)
+bool ath10kNativePCIIdentity(UInt16 vendor,UInt16 device,UInt16 subsystemVendor,UInt16 subsystem)
 {
-    return vendor==0x168c && device==0x42 && subsystemVendor==0x1a3b && subsystem==0x2b51;
+    if (vendor != 0x168c) return false;
+    if (device == 0x0042 && subsystemVendor == 0x1a3b && subsystem == 0x2b51) return true;
+    if (device == 0x003e && subsystemVendor == 0x1028 && subsystem == 0x0310) return true;
+    return false;
 }
 #endif
 
